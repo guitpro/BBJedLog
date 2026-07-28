@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Little Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF6EF;
+    --card:#FFFFFF;
+    --line:#E9E2D3;
+    --ink:#2B2A33;
+    --ink-soft:#767489;
+    --feed-breast:#5B7FA6;
+    --feed-breast-bg:#E7EEF5;
+    --feed-formula:#5E8C74;
+    --feed-formula-bg:#E4EFE9;
+    --diaper:#C79A56;
+    --diaper-bg:#F5EDDD;
+    --care:#8B7CA8;
+    --care-bg:#EEEAF3;
+    --meds:#B26B7A;
+    --meds-bg:#F5E7EA;
+    --danger:#B0483F;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:100px;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:0 16px;}
+  header{padding:22px 0 6px;}
+  .brand{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-style:italic;
+    font-size:26px;
+    letter-spacing:-0.01em;
+    margin:0;
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  .brand #babyName{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-style:italic;
+    font-size:26px;
+    border:none;
+    background:transparent;
+    color:var(--ink);
+    padding:0;
+    border-bottom:1px dashed transparent;
+    display:inline-block;
+    max-width:180px;
+    outline:none;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .brand #babyName:focus{border-bottom:1px dashed var(--ink-soft);}
+  .sub{color:var(--ink-soft);font-size:13px;margin:2px 0 0;}
+
+  .datebar{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:8px 8px 8px 16px;margin-top:16px;
+  }
+  .datebar .dtitle{font-weight:500;font-size:15px;}
+  .datebar .dsub{font-size:12px;color:var(--ink-soft);font-family:'JetBrains Mono',monospace;}
+  .iconbtn{
+    border:none;background:transparent;color:var(--ink);
+    width:36px;height:36px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;cursor:pointer;
+  }
+  .iconbtn:active{background:var(--line);}
+  .todaybtn{
+    font-size:12px;border:1px solid var(--line);background:transparent;
+    border-radius:8px;padding:5px 10px;cursor:pointer;color:var(--ink-soft);
+  }
+  .dategroup{display:flex;align-items:center;gap:4px;}
+
+  .strip{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px 10px;}
+  .strip-label{font-size:12px;color:var(--ink-soft);margin:0 0 6px;display:flex;justify-content:space-between;}
+  .legend{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;}
+  .legend span{font-size:11px;color:var(--ink-soft);display:flex;align-items:center;gap:5px;}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px;}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center;}
+  .stat .n{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:500;}
+  .stat .l{font-size:10.5px;color:var(--ink-soft);margin-top:2px;line-height:1.2;}
+
+  .section{margin-top:22px;}
+  .section h2{
+    font-family:'Fraunces',serif;font-weight:600;font-size:16px;margin:0 0 8px;
+    display:flex;align-items:center;justify-content:between;gap:8px;
+  }
+  .entry{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;
+  }
+  .entry .time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;min-width:52px;color:var(--ink-soft);}
+  .entry .body{flex:1;font-size:13.5px;}
+  .entry .tag{
+    font-size:10.5px;font-weight:500;padding:2px 7px;border-radius:6px;margin-right:6px;
+    display:inline-block;
+  }
+  .entry .del{border:none;background:transparent;color:var(--ink-soft);cursor:pointer;font-size:15px;padding:4px;}
+  .entry .del:active{color:var(--danger);}
+  .empty{color:var(--ink-soft);font-size:13px;padding:14px 4px;text-align:center;}
+
+  .quickbar{
+    position:fixed;left:0;right:0;bottom:0;
+    background:var(--card);border-top:1px solid var(--line);
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+    display:flex;gap:8px;max-width:520px;margin:0 auto;
+  }
+  .qbtn{
+    flex:1;border:1px solid var(--line);background:var(--bg);border-radius:12px;
+    padding:10px 4px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
+    color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;
+  }
+  .qbtn:active{transform:scale(0.96);}
+  .qbtn .qi{font-size:17px;}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(43,42,51,0.4);
+    display:none;align-items:flex-end;justify-content:center;z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;
+    padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+    max-height:85vh;overflow-y:auto;
+  }
+  .modal h3{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin:0 0 14px;}
+  .field{margin-bottom:14px;}
+  .field label{font-size:12.5px;color:var(--ink-soft);display:block;margin-bottom:5px;}
+  .field input[type=time],.field input[type=number],.field select{
+    width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 10px;
+    font-family:'Inter',sans-serif;font-size:14px;background:var(--bg);color:var(--ink);
+  }
+  .toggle2{display:flex;gap:8px;}
+  .toggle2 button{
+    flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);
+    background:var(--bg);font-size:13.5px;font-weight:500;cursor:pointer;color:var(--ink-soft);
+  }
+  .toggle2 button.active{border-color:currentColor;}
+  .check{display:flex;align-items:center;gap:8px;padding:9px 0;font-size:14px;}
+  .check input{width:18px;height:18px;}
+  .modalbtns{display:flex;gap:10px;margin-top:6px;}
+  .btn{
+    flex:1;padding:12px;border-radius:12px;border:none;font-size:14px;font-weight:500;cursor:pointer;
+  }
+  .btn.save{background:var(--ink);color:#fff;}
+  .btn.cancel{background:var(--bg);color:var(--ink-soft);border:1px solid var(--line);}
+
+  .settings-row{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap;}
+  .linkbtn{
+    flex:1;min-width:140px;border:1px solid var(--line);background:var(--card);
+    border-radius:12px;padding:10px;font-size:13px;font-weight:500;color:var(--ink);
+    cursor:pointer;text-align:center;
+  }
+  .note{font-size:11.5px;color:var(--ink-soft);margin-top:10px;line-height:1.5;}
+  #importFile{display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="brand"><span id="babyName" contenteditable="true" spellcheck="false">BB Jed</span>'s log</p>
+    <p class="sub">Feeds &middot; diapers &middot; care &middot; meds — shared with both of you, no login needed</p>
+  </header>
+
+  <div class="datebar">
+    <button class="iconbtn" id="prevDay" aria-label="Previous day">&larr;</button>
+    <div style="text-align:center;">
+      <div class="dtitle" id="dateTitle">Today</div>
+      <div class="dsub" id="dateSub">2026-07-27</div>
+    </div>
+    <div class="dategroup">
+      <button class="todaybtn" id="todayBtn">Today</button>
+      <button class="iconbtn" id="nextDay" aria-label="Next day">&rarr;</button>
+    </div>
+  </div>
+
+  <div class="strip">
+    <div class="strip-label"><span>Day at a glance</span><span>12am&ndash;12am</span></div>
+    <svg id="dayStrip" viewBox="0 0 1000 58" width="100%" height="58" preserveAspectRatio="none"></svg>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--feed-breast)"></i>Breast</span>
+      <span><i class="dot" style="background:var(--feed-formula)"></i>Formula</span>
+      <span><i class="dot" style="background:var(--diaper)"></i>Diaper</span>
+      <span><i class="dot" style="background:var(--care)"></i>Bath / wipe</span>
+    </div>
+  </div>
+
+  <div class="strip">
+    <div class="strip-label"><span>Week at a glance</span><span id="weekRange"></span></div>
+    <svg id="weekChart" viewBox="0 0 700 172" width="100%" height="172" preserveAspectRatio="none"></svg>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--feed-breast)"></i>Total ml fed &middot; selected day outlined</span>
+    </div>
+  </div>
+
+  <div class="stats" id="statsRow"></div>
+
+  <div class="section">
+    <h2>Feeds</h2>
+    <div id="feedList"></div>
+  </div>
+
+  <div class="section">
+    <h2>Diapers</h2>
+    <div id="diaperList"></div>
+  </div>
+
+  <div class="section">
+    <h2>Bath &amp; wipe</h2>
+    <div id="careList"></div>
+  </div>
+
+  <div class="section">
+    <h2>Data</h2>
+    <div class="settings-row">
+      <button class="linkbtn" id="exportBtn">Export all to CSV</button>
+      <button class="linkbtn" id="importBtn">Import from CSV</button>
+      <input type="file" id="importFile" accept=".csv">
+    </div>
+    <p class="note">Export downloads every day you've logged as one spreadsheet file. Import reads a CSV in the same format and adds those rows in &mdash; existing entries are kept, so it's safe to re-import.</p>
+  </div>
+
+</div>
+
+<div class="quickbar">
+  <button class="qbtn" id="addFeed"><span class="qi">🍼</span>Feed</button>
+  <button class="qbtn" id="addDiaper"><span class="qi">🧷</span>Diaper</button>
+  <button class="qbtn" id="addBath"><span class="qi">🛁</span>Bath</button>
+  <button class="qbtn" id="addWipe"><span class="qi">🧻</span>Wipe</button>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalInner"></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let current = new Date();
+current.setHours(0,0,0,0);
+
+function dstr(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function nowHM(){
+  const d=new Date();
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function fmtTime(hm){
+  const [h,m]=hm.split(':').map(Number);
+  const ap = h>=12?'PM':'AM';
+  let h12 = h%12; if(h12===0) h12=12;
+  return `${h12}:${String(m).padStart(2,'0')} ${ap}`;
+}
+function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
+
+let dayCache = {};
+
+async function loadDay(ds){
+  if(dayCache[ds]) return dayCache[ds];
+  try{
+    const res = await window.storage.get('day:'+ds, true);
+    const data = res ? JSON.parse(res.value) : {feeds:[],diapers:[],care:[]};
+    if(!data.feeds) data.feeds=[];
+    if(!data.diapers) data.diapers=[];
+    if(!data.care) data.care=[];
+    dayCache[ds]=data;
+    return data;
+  }catch(e){
+    const empty = {feeds:[],diapers:[],care:[]};
+    dayCache[ds]=empty;
+    return empty;
+  }
+}
+async function saveDay(ds, data){
+  dayCache[ds]=data;
+  try{
+    await window.storage.set('day:'+ds, JSON.stringify(data), true);
+  }catch(e){
+    console.error('save failed', e);
+    alert("Couldn't save that — check your connection and try again.");
+  }
+}
+
+async function loadSettings(){
+  try{
+    const res = await window.storage.get('settings', true);
+    return res ? JSON.parse(res.value) : {babyName:'BB Jed'};
+  }catch(e){ return {babyName:'BB Jed'}; }
+}
+async function saveSettings(s){
+  try{ await window.storage.set('settings', JSON.stringify(s), true); }catch(e){}
+}
+
+function updateDateBar(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  $('dateSub').textContent = dstr(current);
+  if(current.getTime()===today.getTime()){
+    $('dateTitle').textContent = 'Today';
+  } else {
+    $('dateTitle').textContent = current.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
+  }
+}
+
+async function render(){
+  updateDateBar();
+  const ds = dstr(current);
+  const data = await loadDay(ds);
+
+  // stats
+  const feeds = data.feeds.slice().sort((a,b)=>a.time.localeCompare(b.time));
+  const diapers = data.diapers.slice().sort((a,b)=>a.time.localeCompare(b.time));
+  const care = data.care.slice().sort((a,b)=>a.time.localeCompare(b.time));
+
+  const totalMl = feeds.reduce((s,f)=>s+(Number(f.amountMl)||0),0);
+  const vitD = feeds.some(f=>f.vitaminD);
+  const ridwind = feeds.filter(f=>f.ridwind).length;
+  const bothCount = diapers.filter(d=>d.pee&&d.poop).length;
+
+  $('statsRow').innerHTML = `
+    <div class="stat"><div class="n">${feeds.length}</div><div class="l">Feeds</div></div>
+    <div class="stat"><div class="n">${totalMl}</div><div class="l">Total ml</div></div>
+    <div class="stat"><div class="n">${diapers.length}</div><div class="l">Diapers</div></div>
+    <div class="stat"><div class="n">${ridwind}/4</div><div class="l">RidWind</div></div>
+  `;
+
+  // feed list
+  $('feedList').innerHTML = feeds.length ? feeds.map(f=>{
+    const tagStyle = f.type==='breast' ? `background:var(--feed-breast-bg);color:var(--feed-breast);` : `background:var(--feed-formula-bg);color:var(--feed-formula);`;
+    const meds = [];
+    if(f.vitaminD) meds.push('Vit D');
+    if(f.ridwind) meds.push('RidWind');
+    const medsStr = meds.length ? ` &middot; ${meds.join(', ')}` : '';
+    return `<div class="entry">
+      <span class="time">${fmtTime(f.time)}</span>
+      <span class="body"><span class="tag" style="${tagStyle}">${f.type==='breast'?'Breast':'Formula'}</span>${f.amountMl} ml${medsStr}</span>
+      <button class="del" data-cat="feeds" data-id="${f.id}" aria-label="Delete">&times;</button>
+    </div>`;
+  }).join('') : `<div class="empty">No feeds logged yet</div>`;
+
+  // diaper list
+  $('diaperList').innerHTML = diapers.length ? diapers.map(d=>{
+    let label = [];
+    if(d.pee) label.push('Pee');
+    if(d.poop) label.push('Poop');
+    if(!label.length) label.push('Change');
+    return `<div class="entry">
+      <span class="time">${fmtTime(d.time)}</span>
+      <span class="body"><span class="tag" style="background:var(--diaper-bg);color:var(--diaper);">${label.join(' + ')}</span></span>
+      <button class="del" data-cat="diapers" data-id="${d.id}" aria-label="Delete">&times;</button>
+    </div>`;
+  }).join('') : `<div class="empty">No diaper changes logged yet</div>`;
+
+  // care list
+  $('careList').innerHTML = care.length ? care.map(c=>`
+    <div class="entry">
+      <span class="time">${fmtTime(c.time)}</span>
+      <span class="body"><span class="tag" style="background:var(--care-bg);color:var(--care);">${c.kind==='bath'?'Full bath':'Body wipe'}</span></span>
+      <button class="del" data-cat="care" data-id="${c.id}" aria-label="Delete">&times;</button>
+    </div>`).join('') : `<div class="empty">No bath or wipe logged yet</div>`;
+
+  drawStrip(feeds, diapers, care);
+  attachDeleteHandlers(ds);
+  renderWeekChart();
+}
+
+async function renderWeekChart(){
+  const days = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date(current);
+    d.setDate(d.getDate()-i);
+    days.push(d);
+  }
+  const totals = [];
+  for(const d of days){
+    const ds = dstr(d);
+    const data = await loadDay(ds);
+    const total = (data.feeds||[]).reduce((s,f)=>s+(Number(f.amountMl)||0),0);
+    totals.push({ds, date:d, total});
+  }
+  $('weekRange').textContent = `${days[0].toLocaleDateString(undefined,{month:'short',day:'numeric'})} \u2013 ${days[6].toLocaleDateString(undefined,{month:'short',day:'numeric'})}`;
+  drawWeekBars(totals);
+}
+
+function drawWeekBars(totals){
+  const svg = $('weekChart');
+  const maxTotal = Math.max(...totals.map(t=>t.total), 1);
+  const slotW = 700/7;
+  const barW = slotW*0.5;
+  const top = 14, base = 132;
+  const todayDs = dstr(current);
+  let bars = '';
+  bars += `<line x1="0" y1="${base}" x2="700" y2="${base}" stroke="var(--line)" stroke-width="1"/>`;
+  totals.forEach((t,i)=>{
+    const cx = slotW*i + slotW/2;
+    const h = t.total>0 ? Math.max((t.total/maxTotal)*(base-top), 4) : 0;
+    const y = base - h;
+    const isSelected = t.ds===todayDs;
+    const fill = 'var(--feed-breast)';
+    const stroke = isSelected ? 'var(--ink)' : 'none';
+    const strokeWidth = isSelected ? 2 : 0;
+    if(h>0){
+      bars += `<rect x="${cx-barW/2}" y="${y}" width="${barW}" height="${h}" rx="5" fill="${fill}" opacity="${isSelected?1:0.55}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+    } else {
+      bars += `<rect x="${cx-barW/2}" y="${base-3}" width="${barW}" height="3" rx="1.5" fill="var(--line)"/>`;
+    }
+    if(t.total>0){
+      bars += `<text x="${cx}" y="${y-6}" font-size="11" font-family="JetBrains Mono, monospace" fill="var(--ink-soft)" text-anchor="middle">${t.total}</text>`;
+    }
+    const wd = t.date.toLocaleDateString(undefined,{weekday:'short'}).slice(0,3);
+    const dn = t.date.getDate();
+    bars += `<text x="${cx}" y="${base+18}" font-size="11" font-family="Inter, sans-serif" fill="${isSelected?'var(--ink)':'var(--ink-soft)'}" font-weight="${isSelected?'600':'400'}" text-anchor="middle">${wd}</text>`;
+    bars += `<text x="${cx}" y="${base+32}" font-size="10" font-family="JetBrains Mono, monospace" fill="var(--ink-soft)" text-anchor="middle">${dn}</text>`;
+  });
+  svg.innerHTML = bars;
+}
+
+function drawStrip(feeds, diapers, care){
+  const svg = $('dayStrip');
+  const toX = (hm)=>{ const [h,m]=hm.split(':').map(Number); return ((h*60+m)/1440)*1000; };
+  let dots = '';
+  const ticks = [0,250,500,750,1000];
+  const labels = ['12a','6a','12p','6p','12a'];
+  let lines = `<line x1="0" y1="27" x2="1000" y2="27" stroke="var(--line)" stroke-width="1"/>`;
+  ticks.forEach((x,i)=>{
+    lines += `<line x1="${x}" y1="20" x2="${x}" y2="34" stroke="var(--line)" stroke-width="1"/>`;
+    lines += `<text x="${Math.min(Math.max(x,18),982)}" y="50" font-size="11" letter-spacing="0.2" fill="var(--ink-soft)" text-anchor="middle" font-family="Inter,sans-serif">${labels[i]}</text>`;
+  });
+  feeds.forEach(f=>{
+    const color = f.type==='breast' ? 'var(--feed-breast)' : 'var(--feed-formula)';
+    dots += `<circle cx="${toX(f.time)}" cy="12" r="5" fill="${color}"/>`;
+  });
+  diapers.forEach(d=>{
+    dots += `<circle cx="${toX(d.time)}" cy="27" r="5" fill="var(--diaper)"/>`;
+  });
+  care.forEach(c=>{
+    dots += `<circle cx="${toX(c.time)}" cy="42" r="5" fill="var(--care)"/>`;
+  });
+  svg.innerHTML = lines + dots;
+}
+
+function attachDeleteHandlers(ds){
+  document.querySelectorAll('.del').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const cat = btn.dataset.cat, id = btn.dataset.id;
+      const data = await loadDay(ds);
+      data[cat] = data[cat].filter(x=>x.id!==id);
+      await saveDay(ds, data);
+      render();
+    };
+  });
+}
+
+// ---------- Modal ----------
+function openModal(html, onOpen){
+  $('modalInner').innerHTML = html;
+  $('overlay').classList.add('show');
+  if(onOpen) onOpen();
+}
+function closeModal(){ $('overlay').classList.remove('show'); }
+$('overlay').addEventListener('click', (e)=>{ if(e.target.id==='overlay') closeModal(); });
+
+$('addFeed').onclick = ()=>{
+  openModal(`
+    <h3>Log a feed</h3>
+    <div class="field"><label>Time</label><input type="time" id="fTime" value="${nowHM()}"></div>
+    <div class="field"><label>Type</label>
+      <div class="toggle2">
+        <button type="button" id="fBreast" class="active" style="color:var(--feed-breast);border-color:var(--feed-breast);">Breast milk</button>
+        <button type="button" id="fFormula" style="color:var(--feed-formula);">Formula</button>
+      </div>
+    </div>
+    <div class="field"><label>Amount (ml)</label><input type="number" id="fAmount" min="0" step="5" placeholder="e.g. 90"></div>
+    <label class="check"><input type="checkbox" id="fVitD"> Vitamin D drop given this feed</label>
+    <label class="check"><input type="checkbox" id="fRidwind"> RidWind given (0.2 ml) this feed</label>
+    <div class="modalbtns">
+      <button class="btn cancel" id="fCancel">Cancel</button>
+      <button class="btn save" id="fSave">Save feed</button>
+    </div>
+  `);
+  let type='breast';
+  $('fBreast').onclick=()=>{type='breast';$('fBreast').classList.add('active');$('fFormula').classList.remove('active');};
+  $('fFormula').onclick=()=>{type='formula';$('fFormula').classList.add('active');$('fBreast').classList.remove('active');};
+  $('fCancel').onclick=closeModal;
+  $('fSave').onclick=async ()=>{
+    const time = $('fTime').value || nowHM();
+    const amountMl = Number($('fAmount').value)||0;
+    const vitaminD = $('fVitD').checked;
+    const ridwind = $('fRidwind').checked;
+    const ds = dstr(current);
+    const data = await loadDay(ds);
+    data.feeds.push({id:uid(), time, type, amountMl, vitaminD, ridwind});
+    await saveDay(ds, data);
+    closeModal();
+    render();
+  };
+};
+
+$('addDiaper').onclick = ()=>{
+  openModal(`
+    <h3>Log a diaper change</h3>
+    <div class="field"><label>Time</label><input type="time" id="dTime" value="${nowHM()}"></div>
+    <label class="check"><input type="checkbox" id="dPee"> Pee</label>
+    <label class="check"><input type="checkbox" id="dPoop"> Poop</label>
+    <div class="modalbtns">
+      <button class="btn cancel" id="dCancel">Cancel</button>
+      <button class="btn save" id="dSave">Save diaper</button>
+    </div>
+  `);
+  $('dCancel').onclick=closeModal;
+  $('dSave').onclick=async ()=>{
+    const time = $('dTime').value || nowHM();
+    const pee = $('dPee').checked, poop = $('dPoop').checked;
+    const ds = dstr(current);
+    const data = await loadDay(ds);
+    data.diapers.push({id:uid(), time, pee, poop});
+    await saveDay(ds, data);
+    closeModal();
+    render();
+  };
+};
+
+function openCareModal(kind, label){
+  openModal(`
+    <h3>Log ${label}</h3>
+    <div class="field"><label>Time</label><input type="time" id="cTime" value="${nowHM()}"></div>
+    <div class="modalbtns">
+      <button class="btn cancel" id="cCancel">Cancel</button>
+      <button class="btn save" id="cSave">Save</button>
+    </div>
+  `);
+  $('cCancel').onclick=closeModal;
+  $('cSave').onclick=async ()=>{
+    const time = $('cTime').value || nowHM();
+    const ds = dstr(current);
+    const data = await loadDay(ds);
+    data.care.push({id:uid(), time, kind});
+    await saveDay(ds, data);
+    closeModal();
+    render();
+  };
+}
+$('addBath').onclick = ()=>openCareModal('bath','full bath');
+$('addWipe').onclick = ()=>openCareModal('wipe','body wipe');
+
+// ---------- Date nav ----------
+$('prevDay').onclick = ()=>{ current.setDate(current.getDate()-1); render(); };
+$('nextDay').onclick = ()=>{ current.setDate(current.getDate()+1); render(); };
+$('todayBtn').onclick = ()=>{ current = new Date(); current.setHours(0,0,0,0); render(); };
+
+// ---------- Baby name ----------
+$('babyName').addEventListener('blur', async ()=>{
+  const s = await loadSettings();
+  const name = $('babyName').textContent.trim();
+  s.babyName = name || 'BB Jed';
+  $('babyName').textContent = s.babyName;
+  await saveSettings(s);
+});
+$('babyName').addEventListener('keydown', (e)=>{
+  if(e.key==='Enter'){ e.preventDefault(); $('babyName').blur(); }
+});
+
+// ---------- CSV export ----------
+function csvEscape(v){
+  v = String(v==null?'':v);
+  if(/[",\n]/.test(v)) return '"'+v.replace(/"/g,'""')+'"';
+  return v;
+}
+$('exportBtn').onclick = async ()=>{
+  try{
+    const listRes = await window.storage.list('day:', true);
+    const keys = listRes && listRes.keys ? listRes.keys : [];
+    const rows = [['Date','Time','Category','Subtype','AmountMl','Pee','Poop','VitaminD','RidWind']];
+    for(const key of keys){
+      const ds = key.slice(4);
+      const got = await window.storage.get(key, true);
+      if(!got) continue;
+      const data = JSON.parse(got.value);
+      (data.feeds||[]).forEach(f=>{
+        rows.push([ds, f.time, 'Feed', f.type==='breast'?'Breast':'Formula', f.amountMl||0, '', '', f.vitaminD?'Yes':'No', f.ridwind?'Yes':'No']);
+      });
+      (data.diapers||[]).forEach(d=>{
+        rows.push([ds, d.time, 'Diaper', '', '', d.pee?'Yes':'No', d.poop?'Yes':'No', '', '']);
+      });
+      (data.care||[]).forEach(c=>{
+        rows.push([ds, c.time, 'Care', c.kind==='bath'?'Bath':'Wipe', '', '', '', '', '']);
+      });
+    }
+    rows.sort((a,b)=>{
+      if(a===rows[0]) return -1;
+      if(b===rows[0]) return 1;
+      return (a[0]+a[1]).localeCompare(b[0]+b[1]);
+    });
+    const csv = rows.map(r=>r.map(csvEscape).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `baby-log-${dstr(new Date())}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }catch(e){
+    alert("Couldn't export right now — try again in a moment.");
+  }
+};
+
+// ---------- CSV import ----------
+$('importBtn').onclick = ()=>$('importFile').click();
+
+function readFileAsText(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>resolve(reader.result);
+    reader.onerror = ()=>reject(reader.error || new Error('Could not read that file.'));
+    reader.readAsText(file);
+  });
+}
+
+$('importFile').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  e.target.value = ''; // reset now so re-selecting the same file later still fires 'change'
+  if(!file) return;
+
+  try{
+    let text = await readFileAsText(file);
+    text = text.replace(/^\uFEFF/, ''); // strip Excel's UTF-8 BOM if present
+
+    const lines = text.split(/\r?\n/).filter(l=>l.trim().length);
+    if(lines.length<2){ alert('No rows found in that file.'); return; }
+
+    function parseLine(line){
+      const out=[]; let cur=''; let inQ=false;
+      for(let i=0;i<line.length;i++){
+        const ch=line[i];
+        if(inQ){
+          if(ch==='"'){
+            if(line[i+1]==='"'){ cur+='"'; i++; } else { inQ=false; }
+          } else cur+=ch;
+        } else {
+          if(ch==='"') inQ=true;
+          else if(ch===','){ out.push(cur); cur=''; }
+          else cur+=ch;
+        }
+      }
+      out.push(cur);
+      return out;
+    }
+
+    const header = parseLine(lines[0]).map(h=>h.trim().toLowerCase());
+    const idx = (name)=>header.indexOf(name);
+    const iDate=idx('date'), iTime=idx('time'), iCat=idx('category'), iSub=idx('subtype'),
+          iMl=idx('amountml'), iPee=idx('pee'), iPoop=idx('poop'), iVitD=idx('vitamind'), iRid=idx('ridwind');
+
+    if(iDate<0 || iTime<0 || iCat<0){
+      alert("That file doesn't match the expected format — it needs Date, Time, and Category columns (matching the export from this app). Found columns: " + (header.join(', ') || '(none)'));
+      return;
+    }
+
+    function normalizeDate(raw){
+      raw = (raw||'').trim();
+      if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+      let m = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+      if(m){
+        const A = Number(m[1]), B = Number(m[2]);
+        let month, day;
+        if(A>12 && B<=12){ day=A; month=B; } // looks like D/M/Y
+        else { month=A; day=B; } // default to US M/D/Y
+        if(month<1||month>12||day<1||day>31) return null;
+        const year = m[3].length===2 ? (Number(m[3])+2000) : Number(m[3]);
+        return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      }
+      return null;
+    }
+    function normalizeTime(raw){
+      raw = (raw||'').trim();
+      const m = raw.match(/^(\d{1,2}):(\d{1,2})$/);
+      if(!m) return null;
+      const h = Number(m[1]), mm = Number(m[2]);
+      if(h<0||h>23||mm<0||mm>59) return null;
+      return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+    }
+
+    const touched = {};
+    let added = 0, skipped = 0;
+    for(let i=1;i<lines.length;i++){
+      const cols = parseLine(lines[i]);
+      const ds = normalizeDate(cols[iDate]);
+      const time = normalizeTime(cols[iTime]);
+      if(!ds || !time){ skipped++; continue; }
+      const cat = (cols[iCat]||'').trim().toLowerCase();
+      if(!touched[ds]){
+        touched[ds] = await loadDay(ds);
+      }
+      const data = touched[ds];
+      if(cat==='feed'){
+        const sub = (cols[iSub]||'').trim().toLowerCase();
+        data.feeds.push({
+          id:uid(), time,
+          type: sub==='formula' ? 'formula' : 'breast',
+          amountMl: Number(cols[iMl])||0,
+          vitaminD: /yes|true/i.test(cols[iVitD]||''),
+          ridwind: /yes|true/i.test(cols[iRid]||'')
+        });
+        added++;
+      } else if(cat==='diaper'){
+        data.diapers.push({
+          id:uid(), time,
+          pee: /yes|true/i.test(cols[iPee]||''),
+          poop: /yes|true/i.test(cols[iPoop]||'')
+        });
+        added++;
+      } else if(cat==='care'){
+        const sub = (cols[iSub]||'').trim().toLowerCase();
+        data.care.push({id:uid(), time, kind: sub==='bath' ? 'bath':'wipe'});
+        added++;
+      } else {
+        skipped++;
+      }
+    }
+    for(const ds in touched){
+      await saveDay(ds, touched[ds]);
+    }
+    alert(`Imported ${added} entr${added===1?'y':'ies'}.` + (skipped ? ` Skipped ${skipped} row${skipped===1?'':'s'} that didn't match a valid date/category.` : ''));
+    render();
+  }catch(err){
+    console.error('Import failed:', err);
+    alert("Import failed: " + (err && err.message ? err.message : 'unknown error') + ". If this keeps happening, let me know what column headers your file has.");
+  }
+});
+
+// ---------- Init ----------
+(async ()=>{
+  const s = await loadSettings();
+  $('babyName').textContent = s.babyName || 'BB Jed';
+  render();
+})();
+</script>
+</body>
+</html>
